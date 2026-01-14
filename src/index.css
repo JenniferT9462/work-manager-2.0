@@ -1,0 +1,47 @@
+:root {
+    --color-bg: #540D6E;
+    --color-bg-secondary: #A1286A;
+    --color-text-primary: #3BCEAC;
+    --color-text-secondary: #FFD23F;
+    --color-headings: #25BE8B;
+    --color-accent: #EE4266;
+    --color-cta: #0EAD69;
+}
+
+/* roboto-regular - latin */
+@font-face {
+  font-display: swap; /* Check https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display for other options. */
+  font-family: 'Roboto';
+  font-style: normal;
+  font-weight: 400;
+  src: url('./assets/fonts/Roboto-Regular.ttf') format('woff2'); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
+}
+
+/* lora-regular - latin */
+@font-face {
+  font-display: swap; /* Check https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display for other options. */
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  src: url('./assets/fonts/lora-regular.ttf') format('woff2'); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
+}
+
+/* rubik-regular - latin */
+@font-face {
+  font-display: swap; /* Check https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display for other options. */
+  font-family: 'Rubik';
+  font-style: normal;
+  font-weight: 400;
+  src: url('./assets/fonts/rubik-regular.ttf') format('woff2'); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
+}
+
+body {
+    background-color: var(--color-bg);
+    color: var(--color-text-primary);
+    font-family: 'Roboto', sans-serif
+}
+
+
+
+
+
