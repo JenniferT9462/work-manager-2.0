@@ -9,12 +9,9 @@ export default function GetMeetings() {
       const myHeaders = new Headers();
       myHeaders.append(
         "Authorization",
-        "Bearer eyJraWQiOiIxY2UxZTEzNjE3ZGNmNzY2YjNjZWJjY2Y4ZGM1YmFmYThhNjVlNjg0MDIzZjdjMzJiZTgzNDliMjM4MDEzNWI0IiwidHlwIjoiUEFUIiwiYWxnIjoiRVMyNTYifQ.eyJpc3MiOiJodHRwczovL2F1dGguY2FsZW5kbHkuY29tIiwiaWF0IjoxNzY2OTc2OTU2LCJqdGkiOiJlZGE5OTU3Ny04OTE5LTRlNDEtOGZiNS05NjZhMmUzOWE2MGEiLCJ1c2VyX3V1aWQiOiI4NDQxOGMxMy1mM2ViLTQ0ZjEtODBlNi1mOWYzODgxMTBjNjYifQ.27D1y6sfQ9se4QqrJWSgsGQjWnqvYY__BNurEwDoyqd8GcmiZHeDuB2J61uXp-v3nKH_gsyCLYoSWAFAn-YFwg"
+        `Bearer ${import.meta.env.VITE_CALENDLY_ACCESS_TOKEN}`
       );
-      myHeaders.append(
-        "Cookie",
-        "__cf_bm=fRm1.psLqZpINjPk7fHjyKEs3ZSRZfZmQUwc5.RcBnI-1766978181-1.0.1.1-Tr6anqlN20Ru1cJqeHjVm2Qo5sH.bfis3xMLjXDn78fA54LmpgX62agGccxMPApXy4MAtYse_Sojqi_90p5iWrdo16xgvJa2huHBNNl_1cY; _cfuvid=_hZxVSoNblviSzTkRV5MyRIvapgBepSmhdD.8gKdXDc-1766977225424-0.0.1.1-604800000"
-      );
+      
 
       const requestOptions = {
         method: "GET",
@@ -23,7 +20,7 @@ export default function GetMeetings() {
       };
 
       let response = await fetch(
-        "https://api.calendly.com/scheduled_events?user=https://api.calendly.com/users/84418c13-f3eb-44f1-80e6-f9f388110c66&sort=start_time:desc",
+        `https://api.calendly.com/scheduled_events?user=${import.meta.env.VITE_CALENDLY_URI}`,
         requestOptions
       );
       if (!response.ok) {

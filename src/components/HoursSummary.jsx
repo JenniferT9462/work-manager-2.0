@@ -21,28 +21,33 @@ export default function HoursSummary({ session, logs, archivedLogs = [] }) {
     };
 
     data.forEach((log) => {
-      const minToHours = parseFloat(log.duration) / 60;
-      const logEarnings = parseFloat(minToHours) * log.rate;
+      const duration = parseFloat(log.duration) || 0;
+      const rate = parseFloat(log.rate) || 0;
 
-      totals.totalEarned += logEarnings;
-      totals.totalTime += log.duration;
+      const hourlyEarnings = (duration / 60) * rate;
+
+      totals.totalTime += duration;
+
+      // totals.totalEarned += logEarnings;
+      // totals.totalTime += log.duration;
 
       //Check the type of each log
       // Add to the hours and earnings state
       if (log.type === "Live Class") {
-        totals.totalLiveClass += log.duration;
-        totals.earnedClass += logEarnings;
+        totals.totalLiveClass += duration;
+        totals.earnedClass += hourlyEarnings;
       } else if (log.type === "Mentoring") {
-        totals.totalMentoring += log.duration;
-        totals.earnedMentoring += logEarnings;
+        totals.totalMentoring += duration;
+        totals.earnedMentoring += hourlyEarnings;
       } else if (log.type === "Office Hours") {
-        totals.officeHours += log.duration;
-        totals.earnedOfficeHours += log.rate;
+        totals.officeHours += 1;
+        totals.earnedOfficeHours += rate;
       } else {
-        totals.totalMeetings += log.duration;
-        totals.earnedMeetings += logEarnings;
+        totals.totalMeetings += duration;
+        totals.earnedMeetings += hourlyEarnings;
       }
     });
+    totals.totalEarned = totals.earnedClass + totals.earnedMentoring + totals.earnedOfficeHours + totals.earnedMeetings;
     return totals;
   };
 

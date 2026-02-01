@@ -2,7 +2,7 @@ import { useState } from "react";
 import leftArrow from '../../assets/left.png';
 import rightArrow from '../../assets/right.png';
 
-function MiniCalendar({ meetings, schedule }) {
+function MiniCalendar({ meetings, schedule, calendlySessions = [] }) {
   const dayLabels = ["S", "M", "T", "W", "T", "F", "S"];
   const [viewDate, setViewDate] = useState(new Date());
   const [isHover, setIsHover] = useState(false);
@@ -50,7 +50,9 @@ function MiniCalendar({ meetings, schedule }) {
       return itemDate && itemDate.toString().startsWith(dateStr);
     });
 
-    return { hasMeeting, hasWork };
+    const hasSession = calendlySessions.some((cs) => cs.date_string === dateStr);
+
+    return { hasMeeting, hasWork, hasSession };
   };
 
   // TODO: Understand This!!
@@ -95,7 +97,7 @@ function MiniCalendar({ meetings, schedule }) {
           <div key={`blank-${blank}`} style={{ ...dayStyle, border: "none" }} />
         ))}
         {daysArray.map((day) => {
-          const { hasMeeting, hasWork } = hasLog(day);
+          const { hasMeeting, hasWork, hasSession } = hasLog(day);
           const realToday = new Date();
           const isToday =
             day === realToday.getDate() &&
@@ -131,6 +133,7 @@ function MiniCalendar({ meetings, schedule }) {
                 {hasWork && (
                   <div style={{ ...dotStyle, backgroundColor: "#ffc107" }} />
                 )}
+                {hasSession && <div style={{ ...dotStyle, backgroundColor: "#1da05e" }}/>}
               </div>
             </div>
           );

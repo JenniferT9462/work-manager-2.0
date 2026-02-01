@@ -11,77 +11,100 @@ import TimeLogs from "./TimeLogs";
 import Meetings from "./Meetings";
 import { Routes, Route } from "react-router-dom";
 import Schedule from "./Schedule";
+import { syncSessions } from "../components/services/CalendlyService";
 
 export default function Dashboard({ session }) {
   const [meetings, setMeetings] = useState([]);
   const [schedule, setSchedule] = useState([]);
   const [logs, setLogs] = useState([]);
   const [weather, setWeather] = useState(null);
+  const [calendlySessions, setCalendlySessions] = useState([]);
+
+  // Directly fetch to Calendly first
+  const fetchCalendlyDirect = async () => {
+    try {
+      const token = import.meta.env.VITE_CALENDLY_ACCESS_TOKEN;
+      const info = new Date();
+      info.setHours(0, 0, 0, 0);
+      const minTime = info.toISOString();
+
+      const response = await fetch(
+        `https://api.calendly.com/scheduled_events?user=${encodeURIComponent(
+          import.meta.env.VITE_CALENDLY_URI,
+        )}&min_start_time=${minTime}&status=active&sort=start_time:asc`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        },
+      );
+      const json = await response.json();
+      console.log(json);
+      if (json.collection) {
+        setCalendlySessions(json.collection);
+        return json.collection; // Return it so we can sync it if needed
+      }
+    } catch (err) {
+      console.error("Calendly Fetch Error:", err);
+    }
+  };
+
+  const handleSync = async () => {
+    // Pull fresh data from Calendly and update UI state immediately
+    const freshData = await fetchCalendlyDirect();
+
+    if (freshData) {
+      // Sync to Supabase just for backup/logging
+      await syncSessions(freshData);
+      alert("Synced with Calendly!");
+    }
+  };
 
   // Get meetings and work schedule from supabase and store in their states
   useEffect(() => {
-    if (!session?.user) return;
-    async function fetchMeetings() {
-      const { data, error } = await supabase
-        .from("sessions-schedule")
-        .select("*")
-        .eq("user_id", session.user.id)
-        .order("date", { ascending: false });
-      if (error) {
-        console.error("Error fetching logs:", error);
-      } else {
-        setMeetings(data);
-      }
-    }
-    async function fetchSchedule() {
-      const { data, error } = await supabase
+    if (!session?.user.id || weather) return;
+    // Load everything once when the component mounts or user changes
+    const loadData = async () => {
+      // Fetch Schedule
+      const { data: scheduleData } = await supabase
         .from("work-schedule")
         .select("*")
         .eq("user_id", session.user.id)
         .order("startTime", { ascending: true });
-      if (error) {
-        console.error("Error fetching logs:", error);
-      } else {
-        setSchedule(data);
-      }
-    }
+      setSchedule(scheduleData || []);
 
-    async function fetchTotalPay() {
-      const { data, error } = await supabase
+
+      // Fetch Logs
+      const { data: logsData } = await supabase
         .from("logged-hours")
         .select("*")
-        .eq("user_id", session.user.id)
-        .order("date", { ascending: true });
-      if (error) {
-        console.error("Error Fetching Logs: ", error);
-      } else {
-        setLogs(data);
-      }
-    }
+        .eq("user_id", session.user.id);
+      setLogs(logsData || []);
 
-    async function fetchWeather() {
-      const response = await fetch(
-        "https://api.open-meteo.com/v1/forecast?latitude=30.464063&longitude=-91.18879&daily=weather_code,temperature_2m_max,temperature_2m_min&hourly=temperature_2m,weather_code,apparent_temperature&current=temperature_2m,relative_humidity_2m,weather_code&timezone=America%2FChicago&wind_speed_unit=mph&temperature_unit=fahrenheit&precipitation_unit=inch"
-      );
-      const weatherData = await response.json();
+      //Fetch Calendly directly not supabase mock data
+      fetchCalendlyDirect();
 
-      if (!response.ok) {
-        console.error("Error Fetching Logs");
-      } else {
+
+
+      // Fetch Weather (only if we don't have it yet to avoid loops)
+      if (!weather) {
+        const res = await fetch(
+          "https://api.open-meteo.com/v1/forecast?latitude=30.464063&longitude=-91.18879&daily=weather_code,temperature_2m_max,temperature_2m_min&hourly=temperature_2m,weather_code,apparent_temperature&current=temperature_2m,relative_humidity_2m,weather_code&timezone=America%2FChicago&wind_speed_unit=mph&temperature_unit=fahrenheit&precipitation_unit=inch",
+        );
+        const weatherData = await res.json();
         setWeather(weatherData);
-        console.log(weatherData);
       }
-    }
+    };
 
-    // connect real data from Supabase to the summary section.
 
-    fetchMeetings();
-    fetchSchedule();
-    fetchTotalPay();
-    fetchWeather();
-  }, [session]); // session dependency to prevent un-logged in users.
+    loadData();
 
-  //TODO: connect real data from Supabase to the summary section.
+  
+  }, [session?.user?.id]); // session dependency to prevent un-logged in users.
+
+
 
   return (
     <div>
@@ -98,8 +121,13 @@ export default function Dashboard({ session }) {
           element={
             <>
               <div style={calendarAgendaStyle}>
-                <MiniCalendar meetings={meetings} schedule={schedule} />
-                <TodaysAgenda meetings={meetings} schedule={schedule} />
+                <button onClick={handleSync}>Sync Calendly</button>
+                <MiniCalendar
+                  meetings={meetings}
+                  schedule={schedule}
+                  calendlySessions={calendlySessions}
+                />
+                <TodaysAgenda meetings={calendlySessions} schedule={schedule} />
               </div>
               <div style={calendarAgendaStyle}>
                 <WorkHoursForm session={session} />
